@@ -1,7 +1,5 @@
 package dev.jcps;
 
-import org.jcps.JavaAppletAdapter;
-
 import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
@@ -337,7 +335,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
     /**
      * Image object.
      */
-    protected static Image image;
+    public static Image image;
 
     /**
      * Array of grass images.
@@ -470,6 +468,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
         ATrain.grassPics[2] = this.getImage(this.getDocumentBase(), "1lava.gif");
         ATrain.grassPics[3] = this.getImage(this.getDocumentBase(), "1lavab.gif");
         ATrain.bullet = this.getAudioClip(this.getDocumentBase(), "bullet.wav");
+        //if (ATrain.bullet == null) ATrain.bullet = this.getAudioClip(this.getCodeBase().toString(), "bullet.wav");
         ATrain.hole = this.getAudioClip(this.getDocumentBase(), "hole.wav");
         ATrain.drum2 = this.getAudioClip(this.getDocumentBase(), "drum2.wav");
         ATrain.jumpSnd = this.getAudioClip(this.getDocumentBase(), "pin.wav");

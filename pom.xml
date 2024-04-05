@@ -6,7 +6,7 @@
 
     <groupId>dev.jcps</groupId>
     <artifactId>ATrain</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
 
     <pluginRepositories>
         <pluginRepository>
@@ -120,9 +120,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jcps</groupId>
+            <groupId>dev.jcps</groupId>
             <artifactId>appletwrapperframework</artifactId>
-            <version>0.1.4</version>
+            <version>0.1.6</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
