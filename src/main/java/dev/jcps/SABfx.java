@@ -303,12 +303,14 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
         return SABfx.tstr;
     }
 
+    @Override
     public void update(final Graphics graphics) {
         SABfx.redBall = 1;
         this.paint(graphics);
         SABfx.redBall = 0;
     }
 
+    @Override
     public void paint(final Graphics graphics) {
         if (SABfx.redBall == 0) {
             return;
@@ -822,6 +824,7 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
                         try {
                             SABfx.tracker.waitForID(SABfx.operand1);
                         } catch (final InterruptedException ignored) {
+                            // ignored
                         }
                         break;
                     }
@@ -2045,7 +2048,6 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
                             nextToken = stringTokenizer.nextToken();
                         }
                         try {
-                            //this.getAppletContext().showDocument(new URL(string), nextToken);
                             System.out.println(string + nextToken);
                         } catch (final Exception ignored) {
                         }
@@ -2603,6 +2605,7 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
         }
     }
 
+    @Override
     public void run() {
         SABfx.macRdata = "";
         Label_0005_Outer:
@@ -2710,6 +2713,7 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
         }
     }
 
+    @Override
     public synchronized boolean mouseDown(final Event event, final int miceX, final int miceY) {
         if (SABfx.noClick == 0 && SABfx.loadingScript == 0) {
             SABfx.miceDown = 1;
@@ -2719,6 +2723,7 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
         return true;
     }
 
+    @Override
     public synchronized boolean mouseUp(final Event event, final int miceX, final int miceY) {
         if (SABfx.noClick == 0 && SABfx.loadingScript == 0) {
             SABfx.miceUp = 1;
@@ -2728,6 +2733,7 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
         return true;
     }
 
+    @Override
     public synchronized boolean mouseMove(final Event event, final int miceX, final int miceY) {
         if (SABfx.noClick == 0 && SABfx.loadingScript == 0) {
             SABfx.miceDrag = 0;
@@ -2738,6 +2744,7 @@ public final class SABfx extends JPanel implements Runnable, JavaAppletAdapter {
         return true;
     }
 
+    @Override
     public synchronized boolean mouseDrag(final Event event, final int miceX, final int miceY) {
         if (SABfx.noClick == 0 && SABfx.loadingScript == 0) {
             SABfx.miceX = miceX;

@@ -1,5 +1,8 @@
 package dev.jcps;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Random;
 
 /**
  * <p>
@@ -28,6 +32,18 @@ import java.awt.event.MouseListener;
  * @see KeyListener
  */
 public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, KeyListener {
+    public static final String ELAPSED_TIME = "Elapsed Time: ";
+    public static final String SECONDS = " seconds.";
+    public static final String THERE_ARE = "There are ";
+    public static final String STOPS_LEFT = " stops left.";
+    public static final String COMPLETE = " Complete";
+    public static final String STAGE = "Stage ";
+    public static final String SAWTOOTH_RIDGE_RUN = "SAWTOOTH RIDGE RUN";
+    public static final String ONE_STOP_LEFT = "There is only ONE stop left!";
+    public static final String STAGES_COMPLETE = "*** All Stages Complete ***";
+    public static final String LAVA_CAVERN_RUN = "LAVA CAVERN RUN";
+    public static final String STARRY_NIGHT_RUN = "STARRY NIGHT RUN";
+    public static Random rnd;
     /**
      * Chimes sound. Played at intermission.
      */
@@ -205,7 +221,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
     /**
      * Current stage of the game.
      */
-    protected static int stage;
+    protected static int currentStage;
 
     /**
      * Current level of the game.
@@ -373,6 +389,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
     protected static int ih;
 
     static {
+        ATrain.rnd = new Random();
         ATrain.madeIt = null;
         ATrain.crash = null;
         ATrain.hole = null;
@@ -430,7 +447,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
      * Main method to start the ATrain application.
      * <p>
      * This method is responsible for creating an instance of the ATrain class and initializing it.
-     * It sets the size of the application window to 400x210 pixels, sets the title to "A-Train", sets the default close operation to exit on close,
+     * It sets the size of the application window to 400x210 pixels, sets the title to "A-Train",
+     * sets the default close operation to exit on close,
      * adds a mouse listener to the application window, and adds a key listener to the application window.
      * It also sets the window to be undecorated, centered on the screen, and visible.
      * Finally, it starts the animation by calling the start() method on the ATrain instance.
@@ -443,7 +461,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
         game.init();
         game.setSize(400, 210);
         game.setTitle("A-Train");
-        game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        game.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         game.addMouseListener(game);
         game.addKeyListener(game);
         game.setUndecorated(true);
@@ -468,15 +486,16 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
         ATrain.grassPics[2] = this.getImage(this.getDocumentBase(), "1lava.gif");
         ATrain.grassPics[3] = this.getImage(this.getDocumentBase(), "1lavab.gif");
         ATrain.bullet = this.getAudioClip(this.getDocumentBase(), "bullet.wav");
-        //if (ATrain.bullet == null) ATrain.bullet = this.getAudioClip(this.getCodeBase().toString(), "bullet.wav");
         ATrain.hole = this.getAudioClip(this.getDocumentBase(), "hole.wav");
         ATrain.drum2 = this.getAudioClip(this.getDocumentBase(), "drum2.wav");
         ATrain.jumpSnd = this.getAudioClip(this.getDocumentBase(), "pin.wav");
         ATrain.madeIt = this.getAudioClip(this.getDocumentBase(), "madeit.wav");
         ATrain.crash = this.getAudioClip(this.getDocumentBase(), "crash.wav");
         ATrain.hiss = this.getAudioClip(this.getDocumentBase(), "hiss.wav");
-        (ATrain.finish = this.getAudioClip(this.getDocumentBase(), "finish.wav")).start();
-        (ATrain.jets = this.getAudioClip(this.getDocumentBase(), "jets.wav")).start();
+        ATrain.finish = this.getAudioClip(this.getDocumentBase(), "finish.wav");
+        ATrain.finish.start();
+        ATrain.jets = this.getAudioClip(this.getDocumentBase(), "jets.wav");
+        ATrain.jets.start();
         ATrain.fillUp = this.getAudioClip(this.getDocumentBase(), "fillup.wav");
     }
 
@@ -489,6 +508,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
      *
      * @param graphics The graphics context used for rendering the components.
      */
+    @Override
     public synchronized void update(final Graphics graphics) {
         // Clip the graphics context based on the current train speed
         if (ATrain.speed > 0) {
@@ -513,6 +533,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
      *
      * @param graphics The graphics context used for rendering the components.
      */
+    @Override
     public void paint(final Graphics graphics) {
         // Check if the train speed is zero
         if (ATrain.speed == 0) {
@@ -556,7 +577,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
         }
 
         // Increase sleeper when the train reaches stage 3
-        if (ATrain.stage == 3) {
+        if (ATrain.currentStage == 3) {
             ATrain.sleeper += 100;
         }
 
@@ -573,42 +594,41 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
             this.move();
 
             // Increase speed under certain conditions
-            if (ATrain.jump == 0 && ATrain.speed < 20 && ATrain.aniClock % 100 == 99 && ATrain.stage < 2) {
+            if (ATrain.jump == 0 && ATrain.speed < 20 && ATrain.aniClock % 100 == 99 && ATrain.currentStage < 2) {
                 ++ATrain.speed;
             }
 
             // Update train's distance travelled
-            ATrain.distance = ATrain.distance + ATrain.speed + (int) (Math.random() * 2.0);
+            ATrain.distance = ATrain.distance + ATrain.speed + rnd.nextInt(2);
 
             // Reset train's Y position if not jumping and not in stage 2
-            if (ATrain.jump == 0 && ATrain.stage != 2) {
+            if (ATrain.jump == 0 && ATrain.currentStage != 2) {
                 ATrain.trainY = ATrain.track1Y;
             }
 
             // Handle end conditions if the train reaches its goal
-            if (ATrain.distance > ATrain.goal && (ATrain.trainY == ATrain.track1Y || ATrain.stage == 2)) {
+            if (ATrain.distance > ATrain.goal && (ATrain.trainY == ATrain.track1Y || ATrain.currentStage == 2)) {
                 --ATrain.aniClock;
                 ATrain.speed = 0;
                 ATrain.distance = ATrain.goal;
                 ATrain.timer = 0;
-                //ATrain.finish.loop(1);
             }
 
             // Handle jumping logic based on different stages and play corresponding sounds
-            if (ATrain.jump == 1 && ATrain.stage < 2) {
+            if (ATrain.jump == 1 && ATrain.currentStage < 2) {
                 ATrain.jumpCount = 10;
                 ATrain.jump = 2;
                 ATrain.jumpSnd.setFramePosition(0);
                 ATrain.jumpSnd.start();
             }
-            if (ATrain.jump == 1 && ATrain.stage == 2) {
+            if (ATrain.jump == 1 && ATrain.currentStage == 2) {
                 ATrain.jumpCount = 12;
                 ATrain.jump = 2;
                 ATrain.jets.loop(1);
             }
-            if (ATrain.jump == 1 && ATrain.stage == 3) {
+            if (ATrain.jump == 1 && ATrain.currentStage == 3) {
                 ATrain.allDone = 0;
-                ATrain.stage = 0;
+                ATrain.currentStage = 0;
                 ATrain.level = 0;
                 ATrain.aniClock = 100;
                 ATrain.goal = 1;
@@ -627,7 +647,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                 ATrain.trainY -= ATrain.vSpeed;
                 ATrain.vSpeed = 0;
             }
-            if (ATrain.jump == 3 && ATrain.stage != 2) {
+            if (ATrain.jump == 3 && ATrain.currentStage != 2) {
                 ATrain.trainY += 4;
                 if (ATrain.trainY > ATrain.track1Y) {
                     ATrain.jump = 0;
@@ -635,12 +655,12 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     ATrain.drum2.start();
                 }
             }
-            if (ATrain.jump == 3 && ATrain.stage == 2) {
+            if (ATrain.jump == 3 && ATrain.currentStage == 2) {
                 ATrain.jump = 0;
             }
 
             // Adjust train's Y position based on stage
-            if (ATrain.stage == 2) {
+            if (ATrain.currentStage == 2) {
                 ATrain.trainY += 4;
             }
 
@@ -665,7 +685,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                 }
                 graphics.setColor(new Color(colorInt + 127, 0, 0));
                 ATrain.finishTime = 0;
-                if (ATrain.dead == 1 && ATrain.aniClock < 200 && Math.random() * 100.0 < 50.0) {
+                if (ATrain.dead == 1 && ATrain.aniClock < 200 && rnd.nextInt(100) < 50.0) {
                     graphics.setColor(Color.yellow);
                 }
                 graphics.fillOval(50 - ATrain.aniClock, ATrain.trainY - ATrain.aniClock,
@@ -689,7 +709,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
             if (ATrain.aniClock >= 250) { // don't change from 250
                 pinLoop:
                 {
-                    switch (ATrain.stage) {
+                    switch (ATrain.currentStage) {
                         case 0: {
                             switch (ATrain.level) {
                                 // Draws the intro pin
@@ -727,14 +747,12 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         }
                                     }
                                     graphics.setColor(Color.yellow);
-                                    graphics.drawString("Best Track Record Time: " + formatTime(ATrain.bTime), 100, 144);
+                                    graphics.drawString("Best Track Record Time: " + formatTime(ATrain.bTime),
+                                            100, 144);
                                     break pinLoop;
                                 }
                                 // draw the inter-stage pin
-                                case 1:
-                                case 2:
-                                case 3:
-                                case 4: {
+                                case 1, 2, 3, 4: {
                                     if (ATrain.timer < 4) {
                                         graphics.setColor(ATrain.stumpcolor);
                                         graphics.fillRect(80, 4, 240, 90);
@@ -744,11 +762,11 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         // Draw shadow text
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "SAWTOOTH RIDGE RUN", Color.white, 99, 21);
-                                        drawShadowText(graphics, "Stage " + ATrain.level + " Complete", Color.white, 99, 41);
-                                        drawShadowText(graphics, "There are " + (6 - ATrain.level) + " stops left.", Color.white, 99, 55);
+                                        drawShadowText(graphics, SAWTOOTH_RIDGE_RUN, Color.white, 99, 21);
+                                        drawShadowText(graphics, STAGE + ATrain.level + COMPLETE, Color.white, 99, 41);
+                                        drawShadowText(graphics, THERE_ARE + (6 - ATrain.level) + STOPS_LEFT, Color.white, 99, 55);
                                         drawShadowText(graphics, "You're doing great kid.", Color.white, 99, 69);
-                                        drawShadowText(graphics, "Elapsed Time: " + formatTime(ATrain.eTime) + " seconds.", Color.white, 99, 88);
+                                        drawShadowText(graphics, ELAPSED_TIME + formatTime(ATrain.eTime) + SECONDS, Color.white, 99, 88);
                                         break pinLoop;
                                     }
                                     break pinLoop;
@@ -763,19 +781,20 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "SAWTOOTH RIDGE RUN", Color.white, 99, 21);
-                                        drawShadowText(graphics, "Stage " + ATrain.level + " Complete", Color.white, 99, 41);
-                                        drawShadowText(graphics, "There is only ONE stop left!", Color.white, 99, 55);
+                                        drawShadowText(graphics, SAWTOOTH_RIDGE_RUN, Color.white, 99, 21);
+                                        drawShadowText(graphics, STAGE + ATrain.level + COMPLETE, Color.white, 99, 41);
+                                        drawShadowText(graphics, ONE_STOP_LEFT, Color.white, 99, 55);
                                         drawShadowText(graphics, "Bring'er on home, kid.", Color.white, 99, 69);
-                                        drawShadowText(graphics, "Elapsed Time: " + formatTime(ATrain.eTime) +
-                                                " seconds.", Color.white, 99, 88);
+                                        drawShadowText(graphics, ELAPSED_TIME + formatTime(ATrain.eTime) +
+                                                SECONDS, Color.white, 99, 88);
                                         graphics.setColor(Color.white);
                                         break pinLoop;
                                     }
                                     break pinLoop;
                                 }
                                 // draw the level complete pin
-                                case 6: {
+                                case 6:
+                                default: {
                                     if (ATrain.timer < 4) {
                                         graphics.setColor(ATrain.stumpcolor);
                                         graphics.fillRect(80, 4, 240, 90);
@@ -784,8 +803,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "SAWTOOTH RIDGE RUN", Color.white, 99, 21);
-                                        drawShadowText(graphics, "*** All Stages Complete ***", Color.white, 99, 41);
+                                        drawShadowText(graphics, SAWTOOTH_RIDGE_RUN, Color.white, 99, 21);
+                                        drawShadowText(graphics, STAGES_COMPLETE, Color.white, 99, 41);
                                         drawShadowText(graphics, "Not too bad for a kid.", Color.white, 99, 55);
                                         ATrain.srTime = ATrain.eTime;
                                         drawShadowText(graphics, "SAWTOOTH RIDGE Time: " + formatTime(ATrain.eTime),
@@ -797,7 +816,6 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                     break pinLoop;
                                 }
                             }
-                            break;
                         }
                         case 1: {
                             switch (ATrain.level) {
@@ -825,10 +843,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                             "Please wait for images to board before departing, thanx.", 30, 190);
                                     break pinLoop;
                                 }
-                                case 1:
-                                case 2:
-                                case 3:
-                                case 4: {
+                                case 1, 2, 3, 4: {
                                     if (ATrain.timer < 4) {
                                         graphics.setColor(ATrain.stumpcolor);
                                         graphics.fillRect(80, 4, 240, 90);
@@ -837,15 +852,15 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "LAVA CAVERN RUN", Color.white, 99, 21);
-                                        drawShadowText(graphics, "Stage " + ATrain.level + " Complete",
+                                        drawShadowText(graphics, LAVA_CAVERN_RUN, Color.white, 99, 21);
+                                        drawShadowText(graphics, STAGE + ATrain.level + COMPLETE,
                                                 Color.white, 99, 41);
-                                        drawShadowText(graphics, "There are " + (6 - ATrain.level) + " stops left.",
+                                        drawShadowText(graphics, THERE_ARE + (6 - ATrain.level) + STOPS_LEFT,
                                                 Color.white, 99, 55);
                                         drawShadowText(graphics, "You're doing fine, rookie.",
                                                 Color.white, 99, 69);
-                                        drawShadowText(graphics, "Elapsed Time: " + formatTime(ATrain.eTime) +
-                                                " seconds.", Color.white, 99, 88);
+                                        drawShadowText(graphics, ELAPSED_TIME + formatTime(ATrain.eTime) +
+                                                SECONDS, Color.white, 99, 88);
                                         graphics.setColor(Color.white);
                                         break pinLoop;
                                     }
@@ -860,21 +875,22 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "LAVA CAVERN RUN",
+                                        drawShadowText(graphics, LAVA_CAVERN_RUN,
                                                 Color.white, 99, 21);
-                                        drawShadowText(graphics, "Stage " + ATrain.level + " Complete",
+                                        drawShadowText(graphics, STAGE + ATrain.level + COMPLETE,
                                                 Color.white, 99, 41);
-                                        drawShadowText(graphics, "There is only ONE stop left!",
+                                        drawShadowText(graphics, ONE_STOP_LEFT,
                                                 Color.white, 99, 55);
                                         drawShadowText(graphics, "Do it for the Big Kahuna, rookie.",
                                                 Color.white, 99, 69);
-                                        drawShadowText(graphics, "Elapsed Time: " + formatTime(ATrain.eTime) + " seconds.",
+                                        drawShadowText(graphics, ELAPSED_TIME + formatTime(ATrain.eTime) + SECONDS,
                                                 Color.white, 99, 88);
                                         break pinLoop;
                                     }
                                     break pinLoop;
                                 }
-                                case 6: {
+                                case 6:
+                                default: {
                                     if (ATrain.timer < 4) {
                                         graphics.setColor(ATrain.stumpcolor);
                                         graphics.fillRect(80, 4, 240, 90);
@@ -883,9 +899,9 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "LAVA CAVERN RUN",
+                                        drawShadowText(graphics, LAVA_CAVERN_RUN,
                                                 Color.white, 99, 21);
-                                        drawShadowText(graphics, "*** All Stages Complete ***",
+                                        drawShadowText(graphics, STAGES_COMPLETE,
                                                 Color.white, 99, 41);
                                         drawShadowText(graphics, "Good Job, Rookie!",
                                                 Color.white, 99, 55);
@@ -898,7 +914,6 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                     break pinLoop;
                                 }
                             }
-                            break;
                         }
                         case 2: {
                             switch (ATrain.level) {
@@ -912,10 +927,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                     graphics.drawString("low to high stationary orbits.", 100, 110);
                                     break pinLoop;
                                 }
-                                case 1:
-                                case 2:
-                                case 3:
-                                case 4: {
+                                case 1, 2, 3, 4: {
                                     if (ATrain.timer < 4) {
                                         graphics.setColor(ATrain.stumpcolor);
                                         graphics.fillRect(80, 4, 240, 90);
@@ -924,15 +936,15 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "STARRY NIGHT RUN",
+                                        drawShadowText(graphics, STARRY_NIGHT_RUN,
                                                 Color.white, 99, 21);
-                                        drawShadowText(graphics, "Stage " + ATrain.level + " Complete",
+                                        drawShadowText(graphics, STAGE + ATrain.level + COMPLETE,
                                                 Color.white, 99, 41);
-                                        drawShadowText(graphics, "There are " + (6 - ATrain.level) + " stops left.",
+                                        drawShadowText(graphics, THERE_ARE + (6 - ATrain.level) + STOPS_LEFT,
                                                 Color.white, 99, 55);
                                         drawShadowText(graphics, "Cutting it close, Novice.",
                                                 Color.white, 99, 69);
-                                        drawShadowText(graphics, "Elapsed Time: " + formatTime(ATrain.eTime) + " seconds.",
+                                        drawShadowText(graphics, ELAPSED_TIME + formatTime(ATrain.eTime) + SECONDS,
                                                 Color.white, 99, 88);
                                         graphics.setColor(Color.white);
                                         break pinLoop;
@@ -948,22 +960,23 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "STARRY NIGHT RUN",
+                                        drawShadowText(graphics, STARRY_NIGHT_RUN,
                                                 Color.white, 99, 21);
-                                        drawShadowText(graphics, "Stage " + ATrain.level + " Complete",
+                                        drawShadowText(graphics, STAGE + ATrain.level + COMPLETE,
                                                 Color.white, 99, 41);
-                                        drawShadowText(graphics, "There is only ONE stop left!",
+                                        drawShadowText(graphics, ONE_STOP_LEFT,
                                                 Color.white, 99, 55);
                                         drawShadowText(graphics, "Do it to it, Novice.",
                                                 Color.white, 99, 69);
-                                        drawShadowText(graphics, "Elapsed Time: " + formatTime(ATrain.eTime) + " seconds.",
+                                        drawShadowText(graphics, ELAPSED_TIME + formatTime(ATrain.eTime) + SECONDS,
                                                 Color.white, 99, 88);
                                         graphics.setColor(Color.white);
                                         break pinLoop;
                                     }
                                     break pinLoop;
                                 }
-                                case 6: {
+                                case 6:
+                                default: {
                                     if (ATrain.timer < 4) {
                                         graphics.setColor(ATrain.stumpcolor);
                                         graphics.fillRect(80, 4, 240, 90);
@@ -972,8 +985,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                         graphics.drawRect(82, 6, 236, 86);
                                         graphics.setColor(Color.black);
                                         graphics.drawRect(80, 4, 240, 90);
-                                        drawShadowText(graphics, "STARRY NIGHT RUN", Color.white, 99, 21);
-                                        drawShadowText(graphics, "*** All Stages Complete ***", Color.white, 99, 41);
+                                        drawShadowText(graphics, STARRY_NIGHT_RUN, Color.white, 99, 21);
+                                        drawShadowText(graphics, STAGES_COMPLETE, Color.white, 99, 41);
                                         drawShadowText(graphics, "Job Well Done, Novice!", Color.white, 99, 55);
                                         drawShadowText(graphics, "STARRY NIGHT Time: " + formatTime(ATrain.eTime),
                                                 Color.white, 99, 88);
@@ -984,9 +997,9 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                                     break pinLoop;
                                 }
                             }
-                            break;
                         }
-                        case 3: {
+                        case 3:
+                        default: {
                             if (ATrain.allDone == 0) {
                                 ATrain.track1Y = 80;
                                 ATrain.trainY = 80;
@@ -1050,13 +1063,13 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     }
                     graphics.setColor(new Color(n2 * 2, 0, 0));
                     ATrain.dead = 0;
-                    if (ATrain.stage != 3) {
+                    if (ATrain.currentStage != 3) {
                         graphics.drawString("ALL ABOARD! FULL SPEED AHEAD!", 96, 160);
                     } else {
                         graphics.drawString("CAN YOU MAKE IT TO THE 90 SECOND CLUB?", 66, 164);
                     }
                     if (ATrain.level == 6) {
-                        ++ATrain.stage;
+                        ++ATrain.currentStage;
                         ATrain.level = 0;
                         ATrain.aniClock = 240;
                         ATrain.goal = 1;
@@ -1082,7 +1095,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
      * @param x         the x-coordinate of the starting point of the text
      * @param y         the y-coordinate of the baseline of the text
      */
-    private void drawShadowText(Graphics graphics, String text, Color textColor, int x, int y) {
+    private void drawShadowText(@NotNull Graphics graphics, String text, Color textColor, int x, int y) {
         // Draw shadow text in black color at the coordinates
         graphics.setColor(Color.black);
         graphics.drawString(text, x, y);
@@ -1095,7 +1108,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
     /**
      * Formats the time in to a seconds point milliseconds format.
      */
-    private String formatTime(int time) {
+    @Contract(pure = true)
+    private @NotNull String formatTime(int time) {
         int secs = time / 100;
         int tenths = (time - secs * 100) / 10;
         int hundredths = (time - secs * 100 - tenths * 10) % 10;
@@ -1113,7 +1127,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
         Graphics graphics = this.getGraphics();
 
         // Switch statement to handle different stages of the train movement
-        switch (ATrain.stage) {
+        switch (ATrain.currentStage) {
             case 0: {
                 // Stage 0: Moving on normal tracks
                 // Train's vertical position decreases every other animation cycle
@@ -1127,7 +1141,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     // Initiate a jump if the train is not already jumping
                     if (ATrain.jump == 0) {
                         ATrain.jump = 2;
-                        ATrain.jumpCount = 2 + (int) (Math.random() * 4.0);
+                        ATrain.jumpCount = 2 + rnd.nextInt(4);
                     }
                 }
 
@@ -1144,6 +1158,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                         graphics.copyArea(0, 0, 1, 1, 0, 1);
                     }
                 } catch (final Exception ignored) {
+                    // nothing to do
                 }
                 // Draw the train and its surroundings
                 graphics = this.getGraphics();
@@ -1180,7 +1195,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                         graphics.drawLine(ATrain.dx + 20, 4 + ATrain.dy, ATrain.dx + 28, 4 + ATrain.dy);
                         break;
                     }
-                    case 3: {
+                    case 3:
+                    default: {
                         graphics.drawLine(ATrain.dx + 22, 2 + ATrain.dy, ATrain.dx + 26, 6 + ATrain.dy);
                         break;
                     }
@@ -1196,29 +1212,26 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     graphics.fillRect(ATrain.dx, 80, ATrain.speed, ATrain.track1Y - 79);
                 }
                 graphics.setColor(Color.green);
-                graphics.drawImage(ATrain.grassPics[0], 370, ATrain.track1Y + 10, 30, 170 - (ATrain.track1Y + 10), null);
-                graphics.setColor(Color.lightGray);
-                graphics.drawRect(ATrain.dx, ATrain.track1Y, ATrain.speed, 1);
-                graphics.setColor(Color.white);
-                graphics.drawRect(ATrain.dx, ATrain.track1Y + 2, ATrain.speed, 1);
-                graphics.setColor(Color.gray);
-                graphics.drawRect(ATrain.dx, ATrain.track1Y + 3, ATrain.speed, 1);
+                graphics.drawImage(ATrain.grassPics[0], 370, ATrain.track1Y + 10, 30,
+                        170 - (ATrain.track1Y + 10), null);
+                gSet(graphics);
                 graphics.setColor(ATrain.stumpcolor);
                 graphics.fillRect(ATrain.dx, ATrain.track1Y + 4, ATrain.speed, 4);
                 graphics.setColor(Color.black);
                 graphics.drawRect(ATrain.dx, ATrain.track1Y + 8, ATrain.speed, 1);
                 graphics.setColor(Color.white);
-                ATrain.cloud = (int) (Math.random() * ATrain.track1Y) / 2;
+                ATrain.cloud = rnd.nextInt(ATrain.track1Y) / 2;
                 graphics.drawLine(370, ATrain.cloud - 10, 400, ATrain.cloud - 16);
                 graphics.setColor(Color.orange);
-                ATrain.grass = (int) (Math.random() * (160 - ATrain.track1Y)) / 2 + ATrain.track1Y + 10;
+                ATrain.grass = (rnd.nextInt(160 - ATrain.track1Y)) / 2 + ATrain.track1Y + 10;
                 graphics.drawLine(394, ATrain.grass + 5, 397, ATrain.grass);
                 graphics.drawLine(394, ATrain.grass + 5, 391, ATrain.grass);
                 graphics.drawLine(383, ATrain.grass + 4, 386, ATrain.grass);
                 graphics.drawLine(383, ATrain.grass + 4, 379, ATrain.grass);
-                if (Math.random() * 100.0 > 94.0) {
+                if (rnd.nextInt(100) > 94.0) {
                     graphics.drawImage(ATrain.grassPics[1], 370, ATrain.track1Y - 50, null);
-                } else if (ATrain.rockTime == 0 && ATrain.aniClock % (40 - ATrain.level * 4 + (int) (Math.random() * 10.0)) < 2 && ATrain.goal - ATrain.distance > 500 && ATrain.distance > 500) {
+                } else if (ATrain.rockTime == 0 && ATrain.aniClock % (40 - ATrain.level * 4 + rnd.nextInt(10)) <
+                        2 && ATrain.goal - ATrain.distance > 500 && ATrain.distance > 500) {
                     ATrain.tankY = ATrain.track1Y - 20;
                     graphics.setColor(Color.magenta);
                     graphics.fillOval(ATrain.tankX, ATrain.tankY, 20, 20);
@@ -1253,7 +1266,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     ATrain.dead = 1;
                     ATrain.crash.loop(Clip.LOOP_CONTINUOUSLY);
                     ATrain.level = 0;
-                    ATrain.stage = 0;
+                    ATrain.currentStage = 0;
                 }
                 if (ATrain.rockTime != 1 || ATrain.trainY + 10 - ATrain.vSpeed >= ATrain.track1Y) {
                     break;
@@ -1307,13 +1320,14 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                         graphics.drawLine(ATrain.dx + 20, 4 + ATrain.dy, ATrain.dx + 28, 4 + ATrain.dy);
                         break;
                     }
-                    case 3: {
+                    case 3:
+                    default: {
                         graphics.drawLine(ATrain.dx + 22, 2 + ATrain.dy, ATrain.dx + 26, 6 + ATrain.dy);
                         break;
                     }
                 }
                 ATrain.dx = 400 - ATrain.speed;
-                ATrain.lava = ATrain.lava + (int) (Math.random() * 5.0) - 2;
+                ATrain.lava = ATrain.lava + rnd.nextInt(5) - 2;
                 if (ATrain.lava > 88) {
                     ATrain.lava = 88;
                 }
@@ -1325,12 +1339,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                 graphics.fillRect(ATrain.dx, ATrain.lava, ATrain.speed, ATrain.track1Y - ATrain.lava);
                 graphics.fillRect(ATrain.dx, ATrain.track1Y + 10, ATrain.speed, 170 - (ATrain.track1Y + 10));
                 if (ATrain.rockTime < ATrain.earlyRock) {
-                    graphics.setColor(Color.lightGray);
-                    graphics.drawRect(ATrain.dx, ATrain.track1Y, ATrain.speed, 1);
-                    graphics.setColor(Color.white);
-                    graphics.drawRect(ATrain.dx, ATrain.track1Y + 2, ATrain.speed, 1);
-                    graphics.setColor(Color.gray);
-                    graphics.drawRect(ATrain.dx, ATrain.track1Y + 3, ATrain.speed, 1);
+                    gSet(graphics);
                     graphics.setColor(Color.orange);
                     graphics.fillRect(ATrain.dx, ATrain.track1Y + 4, ATrain.speed, 4);
                     graphics.setColor(Color.black);
@@ -1340,20 +1349,20 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                         graphics.fillRect(ATrain.dx, ATrain.track1Y + 9, ATrain.speed, 4);
                     }
                     graphics.setColor(ATrain.stumpcolor);
-                    graphics.fillRect(ATrain.dx, ATrain.track1Y + 13 + (int) (Math.random() * 2.0), ATrain.speed, 3);
+                    graphics.fillRect(ATrain.dx, ATrain.track1Y + 13 + rnd.nextInt(2), ATrain.speed, 3);
                 } else {
                     graphics.setColor(Color.red);
                     graphics.fillRect(ATrain.dx - ATrain.speed, ATrain.track1Y, ATrain.speed * 2, 14);
                 }
-                final int randomizedOffset = (int) (Math.random() * (176 - ATrain.track1Y)) / 2 + ATrain.track1Y + 10;
+                final int randomizedOffset = (rnd.nextInt(176 - ATrain.track1Y)) / 2 + ATrain.track1Y + 10;
                 graphics.setColor(Color.orange);
                 if (randomizedOffset % 2 == 1) {
                     graphics.setColor(Color.yellow);
                 }
                 graphics.drawOval(379, randomizedOffset + 4, 18, 5);
                 graphics.drawOval(383, 20 + randomizedOffset / 2, 16, 4);
-                if (Math.random() * 100.0 <= 94.0 && ATrain.rockTime == 0 && ATrain.aniClock %
-                        (40 - ATrain.level * 4 + (int) (Math.random() * 10.0)) < 2 && ATrain.goal -
+                if (rnd.nextInt(100) <= 94.0 && ATrain.rockTime == 0 && ATrain.aniClock %
+                        (40 - ATrain.level * 4 + rnd.nextInt(10)) < 2 && ATrain.goal -
                         ATrain.distance > 500 && ATrain.distance > 500) {
                     if (ATrain.rockTime == 0 && ATrain.speed > 0) {
                         ATrain.rockTime = 320 / ATrain.speed + 1;
@@ -1361,7 +1370,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     ATrain.earlyRock = ATrain.rockTime * 9 / 10;
                 }
                 graphics.setColor(Color.red);
-                graphics.drawImage(ATrain.grassPics[3], 368, (int) (Math.random() * ATrain.track1Y) / 2 + 4, null);
+                graphics.drawImage(ATrain.grassPics[3], 368, rnd.nextInt(ATrain.track1Y) / 2 + 4, null);
                 if (ATrain.rockTime <= 0) {
                     break;
                 }
@@ -1383,8 +1392,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     ATrain.dead = 1;
                     ATrain.crash.loop(Clip.LOOP_CONTINUOUSLY);
                     ATrain.level = 0;
-                    if (ATrain.stage > 0) {
-                        --ATrain.stage;
+                    if (ATrain.currentStage > 0) {
+                        --ATrain.currentStage;
                     }
                 }
                 if (ATrain.rockTime != 1 || ATrain.trainY + 2 - ATrain.vSpeed >= ATrain.track1Y) {
@@ -1397,10 +1406,11 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                 }
                 break;
             }
-            case 2: {
+            case 2:
+            default: {
                 // Stage 2: no tracks in space
                 // Train's position and surroundings are drawn differently compared to Stage 0 and 1
-                ATrain.track1Y = (int) (Math.random() * 160.0) + 20;
+                ATrain.track1Y = rnd.nextInt(160) + 20;
                 ATrain.dy = ATrain.trainY - 25 - ATrain.vSpeed - 2;
                 ATrain.dx = ATrain.speed + 30;
                 if (ATrain.speed > 0) {
@@ -1422,20 +1432,22 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                 ATrain.dx = 400 - ATrain.speed;
                 graphics.setColor(Color.black);
                 graphics.fillRect(ATrain.dx, 0, ATrain.speed, 170);
-                ATrain.cloud = (int) (Math.random() * 168.0);
+                ATrain.cloud = rnd.nextInt(168);
                 graphics.setColor(ATrain.starcolor[ATrain.cloud % 8]);
                 graphics.fillRect(396, ATrain.cloud, 2, 2);
                 graphics.setColor(Color.white);
-                graphics.fillRect(390, ATrain.cloud = (int) (Math.random() * 168.0), 1, 1);
-                if (Math.random() * 100.0 > 94.0) {
+                ATrain.cloud = rnd.nextInt(168);
+                graphics.fillRect(390, ATrain.cloud, 1, 1);
+                if (rnd.nextInt(100) > 94.0) {
                     graphics.setColor(Color.gray);
-                    graphics.fillOval(386, ATrain.cloud = (int) (Math.random() * 158.0), 12, 12);
+                    ATrain.cloud = rnd.nextInt(158);
+                    graphics.fillOval(386, ATrain.cloud, 12, 12);
                     graphics.setColor(Color.white);
                     graphics.drawOval(384, ATrain.cloud + 3, 20, 4);
                 } else if (ATrain.rockTime == 0 && ATrain.aniClock % (40 - ATrain.level * 4 +
-                        (int) (Math.random() * 10.0)) < 2 && ATrain.goal - ATrain.distance > 500 &&
+                        rnd.nextInt(10)) < 2 && ATrain.goal - ATrain.distance > 500 &&
                         ATrain.distance > 500) {
-                    ATrain.track1Y = (int) (Math.random() * 140.0) + 20;
+                    ATrain.track1Y = rnd.nextInt(140) + 20;
                     ATrain.tankY = ATrain.track1Y - 20;
                     graphics.setColor(Color.yellow);
                     graphics.fillOval(ATrain.tankX, ATrain.tankY, 20, 10);
@@ -1467,8 +1479,8 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                     ATrain.dead = 1;
                     ATrain.crash.loop(Clip.LOOP_CONTINUOUSLY);
                     ATrain.level = 0;
-                    if (ATrain.stage > 0) {
-                        --ATrain.stage;
+                    if (ATrain.currentStage > 0) {
+                        --ATrain.currentStage;
                     }
                 }
                 if (ATrain.rockTime != 1 || ATrain.trainY - ATrain.vSpeed - ATrain.tankY >= 44 ||
@@ -1487,14 +1499,14 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
                 break;
             }
         }
-        if (ATrain.stage != 3 && ATrain.lastSpeed != ATrain.speed) {
+        if (ATrain.currentStage != 3 && ATrain.lastSpeed != ATrain.speed) {
             if (ATrain.lastSpeed == -1) {
                 graphics.setColor(Color.black);
                 graphics.fillRect(0, 178, 400, 16);
                 graphics.setColor(Color.yellow);
                 graphics.drawRect(109, 181, 42, 10);
                 graphics.drawString("STATUS", 10, 190);
-                graphics.drawString("LEVEL: " + (ATrain.stage + 1) + " | STAGE: " + (ATrain.level + 1), 178, 190);
+                graphics.drawString("LEVEL: " + (ATrain.currentStage + 1) + " | STAGE: " + (ATrain.level + 1), 178, 190);
                 graphics.setColor(Color.black);
                 graphics.drawString("A-Train (c) 19961018,  Steve A. Baker,  All Rights Reserved", 10, 206);
             }
@@ -1519,9 +1531,18 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
         graphics.dispose();
     }
 
+    private void gSet(@NotNull Graphics graphics) {
+        graphics.setColor(Color.lightGray);
+        graphics.drawRect(ATrain.dx, ATrain.track1Y, ATrain.speed, 1);
+        graphics.setColor(Color.white);
+        graphics.drawRect(ATrain.dx, ATrain.track1Y + 2, ATrain.speed, 1);
+        graphics.setColor(Color.gray);
+        graphics.drawRect(ATrain.dx, ATrain.track1Y + 3, ATrain.speed, 1);
+    }
+
     @Override
     public void mouseClicked(MouseEvent e) {
-
+        // empty
     }
 
     /**
@@ -1557,17 +1578,17 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
 
     @Override
     public void mouseReleased(MouseEvent e) {
-
+        // empty
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
-
+        // empty
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-
+        // empty
     }
 
     /**
@@ -1581,7 +1602,7 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
      * @param e the event to be processed
      */
     @Override
-    public void keyTyped(KeyEvent e) {
+    public void keyTyped(@NotNull KeyEvent e) {
         if (e.getKeyChar() == KeyEvent.VK_ESCAPE) {
             ATrain.crash.stop();
             System.exit(0);
@@ -1590,11 +1611,11 @@ public class ATrain extends JFrame implements JavaAppletAdapter, MouseListener, 
 
     @Override
     public void keyPressed(KeyEvent e) {
-
+        // empty
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-
+        // empty
     }
 }

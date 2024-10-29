@@ -6,7 +6,14 @@
 
     <groupId>dev.jcps</groupId>
     <artifactId>ATrain</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <pluginRepositories>
         <pluginRepository>
@@ -120,15 +127,21 @@
 
     <dependencies>
         <dependency>
-            <groupId>dev.jcps</groupId>
-            <artifactId>appletwrapperframework</artifactId>
-            <version>0.1.6</version>
+            <groupId>com.github.Java-Code-Phoenix-Society</groupId>
+            <artifactId>AWF</artifactId>
+            <version>88d8644abc</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.10.2</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>26.0.1</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
